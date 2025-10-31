@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AkshayaMetrics — Food Distribution & Waste Tracking</title>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#2e7d32; /* Deep Green */
+      --accent:#FBC02D;  /* Golden Yellow */
+      --bg:#FFF8E1;      /* Soft Cream */
+      --card:#FFFFFF;    /* White */
+      --text:#333333;    /* Charcoal */
+      --muted:#6b6b6b;
+      --radius:12px;
+      --gap:16px;
+    }
+    /* Reset & base */
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'Poppins',system-ui,Arial;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Header with uploaded logo.jpg */
+    header.navbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 20px;
+      background:var(--card);
+      box-shadow:0 4px 14px rgba(46,125,50,0.06);
+      position:sticky; top:0; z-index:60;
+      flex-wrap:wrap;
+    }
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .brand img.logo {
+      width:84px;
+      height:auto;
+      border-radius:12px;
+      object-fit:cover;
+      box-shadow:0 6px 18px rgba(46,125,50,0.07);
+    }
+    .brand .title {
+      line-height:1;
+    }
+    .brand .title h1{
+      margin:0; font-size:1.2rem; font-weight:700; color:var(--primary);
+    }
+    .brand .title p{ margin:0; font-size:0.85rem; color:var(--muted) }
+
+    /* Nav links */
+    nav.navlinks{ display:flex; gap:10px; align-items:center;}
+    nav.navlinks a{
+      padding:8px 12px; border-radius:8px; text-decoration:none;
+      color:var(--text); font-weight:600; font-size:0.95rem;
+    }
+    nav.navlinks a.active{ background:linear-gradient(90deg,var(--primary),#24933a); color:#fff; }
+
+    /* Main container */
+    main.container{ padding:20px; max-width:1200px; margin:18px auto; }
+
+    /* grid layout */
+    .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:var(--gap); align-items:start; }
+    .card{ background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:0 6px 18px rgba(46,125,50,0.06); }
+    .col-3{ grid-column:span 3; }
+    .col-4{ grid-column:span 4; }
+    .col-6{ grid-column:span 6; }
+    .col-12{ grid-column:span 12; }
+
+    /* KPI */
+    .kpi{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+    .kpi h3{ margin:0; font-size:0.85rem; color:var(--muted); }
+    .kpi .value{ font-size:1.6rem; font-weight:700; }
+
+    /* --- Uniform KPI Card Alignment --- */
+.grid > .card.col-3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 130px; /* adjust until visually even with your chart cards below */
+  }
+  
+  .kpi {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+  }
+  
+  /* Efficiency gauge alignment fix */
+  .kpi .row {
+    justify-content: center;
+  }
+  
+  #effGauge {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  #effText {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--primary);
+  }
+  
+
+    /* Chart containers to prevent stretched charts */
+    .chart-card{ display:flex; flex-direction:column; height:320px; }
+    .chart-card canvas {
+        width: 100% !important;
+        height: calc(100% - 25px) !important; /* gives room for axis ticks */
+        display: block;
+      }
+      
+
+    /* Prevent full-width charts from overflowing */
+.card.col-12 canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 400px; /* keep it from growing too tall */
+    display: block;
+  }
+  
+  /* Optional: give full-width charts some breathing room */
+  .card.col-12 {
+    overflow: hidden;
+    text-align: center;
+  }
+  
+    /* Tables */
+    table{ width:100%; border-collapse:collapse; font-size:0.95rem; }
+    th,td{ padding:8px; border-bottom:1px solid #eee; text-align:left; vertical-align:middle; }
+    th{ font-weight:700; color:var(--muted); }
+
+    /* Forms */
+    form.row{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+    .field{ grid-column:span 3; }
+    .field.full{ grid-column:span 6; }
+    label{ display:block; font-size:0.8rem; margin-bottom:6px; color:var(--muted); }
+    input,select,textarea{ width:100%; padding:10px; border-radius:8px; border:1px solid #e6e6e6; font-size:0.95rem; }
+    .btn{ display:inline-block; padding:10px 14px; border-radius:10px; border:0; font-weight:700; cursor:pointer; }
+    .btn-primary{ background:var(--primary); color:#fff; }
+    .btn-ghost{ background:transparent; border:1px solid #ddd; }
+
+    /* small helpers */
+    .row{ display:flex; gap:12px; align-items:center; }
+    .muted{ color:var(--muted); font-size:0.9rem; }
+    .center{ display:flex; align-items:center; justify-content:center; }
+
+    footer{ padding:16px; background:transparent; text-align:center; color:var(--muted); font-size:0.9rem; margin-top:20px; }
+
+    /* responsive rules */
+    @media(max-width:1000px){
+      .col-3{ grid-column:span 6; }
+      .col-4{ grid-column:span 6; }
+      .col-6{ grid-column:span 12; }
+    }
+    @media(max-width:600px){
+      header.navbar{ flex-direction:column; align-items:center; gap:8px; }
+      nav.navlinks{ width:100%; justify-content:space-around; }
+      form.row{ grid-template-columns:repeat(2,1fr); }
+      .field{ grid-column:span 2; }
+    }
+
+    /* small visuals */
+    .about-card {
+        text-align: justify;
+        line-height: 1.8;
+        font-size: 0.97rem;
+        color: #333;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+        border: 1px solid #e0e7ff;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        padding: 28px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      
+      .about-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+      }
+      
+      .about-title {
+        text-align: center;
+        margin-bottom: 18px;
+        color: #2e7d32;
+        font-size: 1.6rem;
+        letter-spacing: 0.5px;
+      }
+      
+      .about-highlight {
+        background-color: #fefae0;
+        border-left: 5px solid #fbc02d;
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin: 20px 0;
+        font-weight: 500;
+      }
+      
+      .about-quote {
+        background: #f0f4f8;
+        font-style: italic;
+        border-left: 4px solid #2c698d;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-top: 22px;
+        color: #444;
+      }
+      
+      .sdg-badges {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+      
+      .sdg {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #ffffff;
+        border: 1px solid #e3e8f0;
+        font-size: 0.88rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        transition: background 0.2s;
+      }
+      
+      .sdg:hover {
+        background: #e3f6f5;
+      }
+      
+      .sdg span {
+        font-weight: 700;
+        color: #2c698d;
+      }
+      
+  </style>
+</head>
+<body>
+
+  <!-- Header (uses uploaded logo.jpg — place logo.jpg in same folder as this HTML) -->
+  <header class="navbar">
+    <div class="brand" style="align-items:center;">
+      <img class="logo" src="logo.png" alt="AkshayaMetrics logo" />
+      <div class="title">
+        <h1>AkshayaMetrics</h1>
+        <p>Data that nourishes. — AkshayaShakti / AkshayaAahaar</p>
+      </div>
+    </div>
+
+    <nav class="navlinks" aria-label="Main navigation">
+      <a href="#dashboard" class="active" data-route>Dashboard</a>
+      <a href="#entry" data-route>Data Entry</a>
+      <a href="#reports" data-route>Reports</a>
+      <a href="#about" data-route>About</a>
+      <a href="#contact" data-route>Contact</a>
+      <a href="#login" id="adminBtn">Admin</a>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page">
+      <div class="grid" style="margin-bottom:12px">
+        <div class="card col-3">
+          <div class="kpi">
+            <h3>Total Meals Cooked</h3>
+            <div class="value" id="kpiCooked">0</div>
+            <div class="muted">Since tracking began</div>
+          </div>
+        </div>
+
+        <div class="card col-3">
+          <div class="kpi">
+            <h3>Total Meals Distributed</h3>
+            <div class="value" id="kpiDistributed">0</div>
+            <div class="muted">Directly to beneficiaries</div>
+          </div>
+        </div>
+
+        <div class="card col-3">
+          <div class="kpi">
+            <h3>Total Wasted</h3>
+            <div class="value" id="kpiWasted">0</div>
+            <div class="muted">Meals not distributed</div>
+          </div>
+        </div>
+
+        <div class="card col-3">
+          <div class="kpi">
+            <h3>Efficiency</h3>
+            <div class="row" style="align-items:center;gap:12px;">
+              <canvas id="effGauge" width="80" height="80"></canvas>
+              <div style="font-weight:700;font-size:1.2rem" id="effText">0%</div>
+            </div>
+            <div class="muted">Distributed / Cooked</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card col-6 chart-card">
+          <h4 style="margin-top:0">Meals Cooked vs Distributed</h4>
+          <canvas id="chartCookDist"></canvas>
+        </div>
+
+        <div class="card col-6 chart-card">
+          <h4 style="margin-top:0">Wastage Over Time</h4>
+          <canvas id="chartWastage"></canvas>
+        </div>
+
+        <div class="card col-12">
+          <h4 style="margin-top:0">Recent Entries</h4>
+          <div style="overflow:auto; max-height:320px;">
+            <table id="entriesTable" aria-live="polite">
+              <thead>
+                <tr><th>Date</th><th>Volunteer</th><th>Center</th><th>Cooked</th><th>Distributed</th><th>Wasted</th><th>Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DATA ENTRY PAGE -->
+    <section id="entry" class="page" style="display:none;">
+      <div class="card col-12">
+        <h3>Log Meals (Volunteer Input)</h3>
+        <form id="entryForm" class="row" onsubmit="return false;">
+          <div class="field">
+            <label for="entryDate">Date</label>
+            <input type="date" id="entryDate" required />
+          </div>
+
+          <div class="field">
+            <label for="volunteer">Volunteer name</label>
+            <input type="text" id="volunteer" placeholder="Your name" required />
+          </div>
+
+          <div class="field">
+            <label for="center">Location / Center</label>
+            <input type="text" id="center" placeholder="Center name" required />
+          </div>
+
+          <div class="field">
+            <label for="cooked">Meals cooked</label>
+            <input type="number" id="cooked" min="0" required />
+          </div>
+
+          <div class="field">
+            <label for="distributed">Meals distributed</label>
+            <input type="number" id="distributed" min="0" required />
+          </div>
+
+          <div class="field full" style="display:flex; gap:8px; justify-content:flex-end;">
+            <button class="btn btn-ghost" type="button" id="clearForm">Clear</button>
+            <button class="btn btn-primary" type="button" id="submitForm">Submit</button>
+          </div>
+        </form>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card col-12">
+        <h4 style="margin-top:0">Manage Entries (Editable)</h4>
+        <div style="overflow:auto; max-height:320px;">
+          <table id="manageTable">
+            <thead><tr><th>Date</th><th>Volunteer</th><th>Center</th><th>Cooked</th><th>Distributed</th><th>Wasted</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="reports" class="page" style="display:none;">
+      <div class="card col-12">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <h3 style="margin:0">Reports & Insights</h3>
+            <div class="muted">Filter and export data</div>
+          </div>
+          <div class="row">
+            <label class="muted">From</label>
+            <input type="date" id="filterFrom" />
+            <label class="muted">To</label>
+            <input type="date" id="filterTo" />
+            <label class="muted">Center</label>
+            <input type="text" id="filterCenter" placeholder="Leave blank for all" />
+            <button class="btn btn-ghost" id="applyFilters">Apply</button>
+            <button class="btn btn-primary" id="exportCSV">Export CSV</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px;">
+        <div class="card col-6 chart-card">
+          <h4 style="margin-top:0">Meals Cooked vs Distributed per Day</h4>
+          <canvas id="reportBar"></canvas>
+        </div>
+
+        <div class="card col-6 chart-card">
+          <h4 style="margin-top:0">Wastage Trends Over Time</h4>
+          <canvas id="reportLine"></canvas>
+        </div>
+
+        <div class="card col-12">
+          <h4 style="margin-top:0">Distribution by Center</h4>
+          <canvas id="reportPie"></canvas>
+        </div>
+
+        <div class="card col-12">
+          <h4 style="margin-top:0">Auto-generated Insights</h4>
+          <div id="autoInsights" class="muted"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="page" style="display:none;">
+        <div class="card col-12 about-card">
+          <h3 class="about-title">About AkshayaMetrics</h3>
+      
+          <p>
+            <strong>AkshayaMetrics</strong> is a student-built initiative developed under the 
+            <strong>Community Engagement Programme (CEP)</strong> at 
+            <strong>Shah & Anchor Kutchhi Engineering College (SAKEC)</strong>. 
+            It was created by <strong>Nupoor Mahajan, Aishwarya Thorat, Neha Raparti, Aryan Gajra & Daksh Talla</strong>, 
+            as a heartfelt contribution to the <strong>AkshayaShakti Foundation</strong>.
+          </p>
+      
+          <p>
+            The platform combines technology with compassion. Volunteers of AkshayaShakti’s 
+            <strong>AkshayaAahaar</strong> program use AkshayaMetrics to record the number of meals cooked, 
+            distributed, and wasted. By converting this data into visual insights, it encourages smarter planning, 
+            reduced waste, and ensures that food reaches those who need it most.
+          </p>
+      
+          <div class="about-highlight">
+            <h4>Why It Matters</h4>
+            <p>
+              Food is not just sustenance — it’s dignity. AkshayaMetrics supports a movement where every meal counts, 
+              every volunteer effort is valued, and every act of service contributes to a more equitable world.
+            </p>
+          </div>
+      
+          <p>
+            The project aligns with the <strong>United Nations Sustainable Development Goals (SDGs)</strong>, 
+            fostering measurable impact on hunger, health, and sustainability:
+          </p>
+      
+          <div class="sdg-badges">
+            <div class="sdg"><span>SDG 2:</span> Zero Hunger — ensuring that no one goes to bed hungry.</div>
+            <div class="sdg"><span>SDG 3:</span> Good Health & Well-Being — promoting safe and nutritious food.</div>
+            <div class="sdg"><span>SDG 12:</span> Responsible Consumption — minimizing waste and optimizing resources.</div>
+          </div>
+      
+          <div class="about-quote">
+            <p>
+              “Beyond the numbers, AkshayaMetrics represents empathy, inclusion, and community. 
+              It echoes AkshayaShakti’s mission to serve vulnerable groups — from the elderly 
+              to the trans community and the visually challenged — ensuring that every meal 
+              is served with dignity and care.”
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      
+
+    <!-- CONTACT -->
+    <section id="contact" class="page" style="display:none;">
+      <div class="card col-12">
+        <h3>Contact / Feedback</h3>
+        <form id="contactForm" onsubmit="return false;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label for="cname">Name</label>
+              <input id="cname" required />
+            </div>
+            <div>
+              <label for="cemail">Email</label>
+              <input id="cemail" type="email" required />
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label for="cmessage">Message</label>
+            <textarea id="cmessage" rows="4" required></textarea>
+          </div>
+          <div style="margin-top:10px; text-align:right;">
+            <button class="btn btn-primary" id="sendContact">Send</button>
+          </div>
+        </form>
+      </div>
+
+      <div style="height:12px;"></div>
+      <div class="card col-12 center">
+        <div>
+          <div class="muted">Visit: <a href="https://akshayashakti.org" target="_blank">akshayashakti.org</a></div>
+          <div style="margin-top:8px;" class="muted">Credits: Built for community</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      AkshayaMetrics — AkshayaShakti • Built for community • SDG aligned
+    </footer>
+
+  </main>
+
+  <!-- ADMIN LOGIN MODAL (client-side demo) -->
+  <div id="loginModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); align-items:center; justify-content:center; z-index:200;">
+    <div class="card" style="max-width:420px; width:100%;">
+      <h3 style="margin-top:0;">Admin Login</h3>
+      <div class="muted">Simple client-side access control (demo only).</div>
+      <div style="margin-top:12px;">
+        <label for="admUser">Username</label>
+        <input id="admUser" placeholder="admin" />
+        <label for="admPass" style="margin-top:8px;">Password</label>
+        <input id="admPass" type="password" placeholder="password" />
+        <div style="margin-top:12px; text-align:right;">
+          <button class="btn btn-ghost" id="closeLogin">Close</button>
+          <button class="btn btn-primary" id="doLogin">Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------------- Configuration ---------------- */
+    const STORAGE_KEY = 'akshayametrics_entries_v1';
+    
+    /* ---------------- DOM helpers ---------------- */
+    const $ = sel => document.querySelector(sel);
+    const $all = sel => Array.from(document.querySelectorAll(sel));
+    
+    /* ---------------- App state ---------------- */
+    let entries = [];
+    
+    /* ---------------- Local storage helpers ---------------- */
+    function loadEntriesLocal() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try { return JSON.parse(raw); } 
+      catch (e) { console.warn('Invalid local data', e); return []; }
+    }
+    
+    function saveEntriesLocal(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+    
+    /* ---------------- Utilities ---------------- */
+    function formatDateISO(d) {
+      const dt = new Date(d);
+      if (Number.isNaN(dt.getTime())) return '';
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, '0');
+      const day = String(dt.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function uid(prefix='id'){ return prefix + '-' + Date.now() + '-' + Math.floor(Math.random()*90000); }
+    
+    /* ---------------- Validation ---------------- */
+    function validateEntry(obj){
+      if(!obj.date || !obj.volunteer || !obj.center) 
+        return {ok:false,msg:'Please fill date, volunteer name and center.'};
+      if(Number.isNaN(Number(obj.cooked)) || Number(obj.cooked) < 0) 
+        return {ok:false,msg:'Meals cooked must be 0 or more.'};
+      if(Number.isNaN(Number(obj.distributed)) || Number(obj.distributed) < 0) 
+        return {ok:false,msg:'Meals distributed must be 0 or more.'};
+      return {ok:true,msg:''};
+    }
+    
+    /* ---------------- CRUD ---------------- */
+    function addEntry(entry){
+      const e = {
+        id: uid('entry'),
+        date: formatDateISO(entry.date),
+        volunteer: String(entry.volunteer).trim(),
+        center: String(entry.center).trim(),
+        cooked: Number(entry.cooked),
+        distributed: Number(entry.distributed)
+      };
+      e.wasted = Math.max(0, e.cooked - e.distributed);
+      entries.push(e);
+      persist();
+      refreshAll();
+    }
+    
+    function updateEntry(id, updated){
+      const idx = entries.findIndex(x => x.id === id);
+      if(idx === -1) return;
+      const e = {
+        id,
+        date: formatDateISO(updated.date),
+        volunteer: String(updated.volunteer).trim(),
+        center: String(updated.center).trim(),
+        cooked: Number(updated.cooked),
+        distributed: Number(updated.distributed)
+      };
+      e.wasted = Math.max(0, e.cooked - e.distributed);
+      entries[idx] = e;
+      persist();
+      refreshAll();
+    }
+    
+    function removeEntry(id){
+      entries = entries.filter(e => e.id !== id);
+      persist();
+      refreshAll();
+    }
+    
+    /* ---------------- Persistence ---------------- */
+    function persist(){
+      saveEntriesLocal(entries);
+    }
+    
+    /* ---------------- UI Refresh ---------------- */
+    function refreshKPIs(){
+      const totalCooked = entries.reduce((a,b)=>a+b.cooked,0);
+      const totalDist = entries.reduce((a,b)=>a+b.distributed,0);
+      const totalWaste = entries.reduce((a,b)=>a+b.wasted,0);
+      const efficiency = totalCooked ? ((totalDist/totalCooked)*100).toFixed(1) : 0;
+      $("#kpiCooked").textContent = totalCooked;
+      $("#kpiDistributed").textContent = totalDist;
+      $("#kpiWasted").textContent = totalWaste;
+      $("#effText").textContent = efficiency + "%";
+      drawEffGauge(efficiency);
+    }
+    
+    function refreshTables(){
+      const tbody = $("#entriesTable tbody");
+      const tbody2 = $("#manageTable tbody");
+      tbody.innerHTML = tbody2.innerHTML = "";
+      entries.forEach(e=>{
+        const row = `<tr>
+          <td>${escapeHtml(e.date)}</td>
+          <td>${escapeHtml(e.volunteer)}</td>
+          <td>${escapeHtml(e.center)}</td>
+          <td>${e.cooked}</td>
+          <td>${e.distributed}</td>
+          <td>${e.wasted}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="removeEntry('${e.id}')">Delete</button></td>
+        </tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+        tbody2.insertAdjacentHTML('beforeend', row);
+      });
+    }
+    
+    /* ---------------- Charts ---------------- */
+    let chartCookDist, chartWastage;
+
+function refreshCharts() {
+  const labels = entries.map(e => e.date);
+  const cookedData = entries.map(e => e.cooked);
+  const distData = entries.map(e => e.distributed);
+  const wasteData = entries.map(e => e.wasted);
+
+  if (chartCookDist) chartCookDist.destroy();
+  if (chartWastage) chartWastage.destroy();
+
+  // Meals Cooked vs Distributed
+  chartCookDist = new Chart(document.getElementById("chartCookDist"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Cooked", data: cookedData, backgroundColor: "#2e7d32" },
+        { label: "Distributed", data: distData, backgroundColor: "#fbc02d" }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,   // <--- ensures the 0 line is visible
+          min: 0
+        }
+      }
+    }
+  });
+
+  // Wastage Over Time
+  chartWastage = new Chart(document.getElementById("chartWastage"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Wasted",
+        data: wasteData,
+        borderColor: "#e53935",
+        fill: false,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,   // <--- same fix for this one
+          min: 0
+        }
+      }
+    }
+  });
+}
+
+function drawEffGauge(percent) {
+  const ctx = document.getElementById("effGauge").getContext("2d");
+  const radius = 30;
+  ctx.clearRect(0, 0, 80, 80);
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.strokeStyle = "#eee";
+  ctx.arc(40, 40, radius, Math.PI, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = "#2e7d32";
+  ctx.arc(40, 40, radius, Math.PI, Math.PI + (Math.PI * percent / 100));
+  ctx.stroke();
+}
+
+    
+    /* ---------------- Navigation ---------------- */
+    $all("[data-route]").forEach(link=>{
+      link.addEventListener("click", e=>{
+        e.preventDefault();
+        const target = link.getAttribute("href");
+        $all(".page").forEach(p=>p.style.display="none");
+        $(target).style.display="block";
+        $all("[data-route]").forEach(a=>a.classList.remove("active"));
+        link.classList.add("active");
+      });
+    });
+    
+    /* ---------------- Form ---------------- */
+    $("#submitForm").addEventListener("click", ()=>{
+      const entry = {
+        date: $("#entryDate").value,
+        volunteer: $("#volunteer").value,
+        center: $("#center").value,
+        cooked: $("#cooked").value,
+        distributed: $("#distributed").value
+      };
+      const val = validateEntry(entry);
+      if(!val.ok) return alert(val.msg);
+      addEntry(entry);
+      $("#entryForm").reset();
+    });
+    
+    $("#clearForm").addEventListener("click", ()=> $("#entryForm").reset());
+    
+    /* ---------------- Reports Section ---------------- */
+let reportBarChart, reportLineChart, reportPieChart;
+
+function refreshReports() {
+  const labels = entries.map(e => e.date);
+  const cookedData = entries.map(e => e.cooked);
+  const distData = entries.map(e => e.distributed);
+  const wasteData = entries.map(e => e.wasted);
+
+  // Destroy previous charts if they exist
+  if (reportBarChart) reportBarChart.destroy();
+  if (reportLineChart) reportLineChart.destroy();
+  if (reportPieChart) reportPieChart.destroy();
+
+  // Meals Cooked vs Distributed
+  reportBarChart = new Chart(document.getElementById("reportBar"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Cooked", data: cookedData, backgroundColor: "#2e7d32" },
+        { label: "Distributed", data: distData, backgroundColor: "#fbc02d" }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+  });
+
+  // Wastage Over Time
+  reportLineChart = new Chart(document.getElementById("reportLine"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{ label: "Wasted", data: wasteData, borderColor: "#e53935", fill: false, tension: 0.3 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+  });
+
+  // Distribution by Center
+  const centers = [...new Set(entries.map(e => e.center))];
+  const centerTotals = centers.map(c => entries.filter(e => e.center === c).reduce((a, b) => a + b.distributed, 0));
+
+  reportPieChart = new Chart(document.getElementById("reportPie"), {
+    type: "pie",
+    data: {
+      labels: centers,
+      datasets: [{ data: centerTotals, backgroundColor: ["#2e7d32", "#fbc02d", "#e53935", "#1e88e5", "#8e24aa"] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // Optional simple auto insight
+  const totalWaste = wasteData.reduce((a, b) => a + b, 0);
+  const avgEff = entries.length ? ((distData.reduce((a,b)=>a+b,0) / cookedData.reduce((a,b)=>a+b,0))*100).toFixed(1) : 0;
+  document.getElementById("autoInsights").textContent =
+    `Average efficiency is ${avgEff}%. Total wastage across records: ${totalWaste} meals.`;
+}
+
+/* ---------------- Page Navigation Fix ---------------- */
+$all("[data-route]").forEach(link => {
+  link.addEventListener("click", e => {
+    e.preventDefault();
+    const target = link.getAttribute("href");
+    $all(".page").forEach(p => p.style.display = "none");
+    $(target).style.display = "block";
+    $all("[data-route]").forEach(a => a.classList.remove("active"));
+    link.classList.add("active");
+
+    // Redraw reports if that section is shown
+    if (target === "#reports") refreshReports();
+  });
+});
+
+    /* ---------------- Admin Modal ---------------- */
+    $("#adminBtn").addEventListener("click", ()=> $("#loginModal").style.display="flex");
+    $("#closeLogin").addEventListener("click", ()=> $("#loginModal").style.display="none");
+    $("#doLogin").addEventListener("click", ()=>{
+      if($("#admUser").value==="admin" && $("#admPass").value==="akshayahar"){
+        window.location.href = "admin.html";
+        ert("Logged in (demo)");
+        $("#loginModal").style.display="none";
+      } else alert("Invalid credentials");
+    });
+    
+    /* ---------------- Initialize ---------------- */
+    function refreshAll(){
+      refreshKPIs();
+      refreshTables();
+      refreshCharts();
+    }
+    
+    /* ---------------- Reports Filtering & CSV Export ---------------- */
+function applyReportFilters() {
+    const fromDate = $("#filterFrom").value ? new Date($("#filterFrom").value) : null;
+    const toDate = $("#filterTo").value ? new Date($("#filterTo").value) : null;
+    const center = $("#filterCenter").value.trim().toLowerCase();
+  
+    let filtered = [...entries];
+  
+    // Filter by date range
+    if (fromDate) filtered = filtered.filter(e => new Date(e.date) >= fromDate);
+    if (toDate) filtered = filtered.filter(e => new Date(e.date) <= toDate);
+  
+    // Filter by center
+    if (center) filtered = filtered.filter(e => e.center.toLowerCase().includes(center));
+  
+    // Rebuild report charts with filtered data
+    buildFilteredReports(filtered);
+  }
+  
+  function buildFilteredReports(data) {
+    const labels = data.map(e => e.date);
+    const cookedData = data.map(e => e.cooked);
+    const distData = data.map(e => e.distributed);
+    const wasteData = data.map(e => e.wasted);
+  
+    if (reportBarChart) reportBarChart.destroy();
+    if (reportLineChart) reportLineChart.destroy();
+    if (reportPieChart) reportPieChart.destroy();
+  
+    reportBarChart = new Chart(document.getElementById("reportBar"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Cooked", data: cookedData, backgroundColor: "#2e7d32" },
+          { label: "Distributed", data: distData, backgroundColor: "#fbc02d" }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+  
+    reportLineChart = new Chart(document.getElementById("reportLine"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{ label: "Wasted", data: wasteData, borderColor: "#e53935", fill: false, tension: 0.3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+  
+    const centers = [...new Set(data.map(e => e.center))];
+    const centerTotals = centers.map(c => data.filter(e => e.center === c).reduce((a, b) => a + b.distributed, 0));
+  
+    reportPieChart = new Chart(document.getElementById("reportPie"), {
+      type: "pie",
+      data: {
+        labels: centers,
+        datasets: [{ data: centerTotals, backgroundColor: ["#2e7d32", "#fbc02d", "#e53935", "#1e88e5", "#8e24aa"] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  
+    const totalWaste = wasteData.reduce((a, b) => a + b, 0);
+    const avgEff = data.length ? ((distData.reduce((a,b)=>a+b,0) / cookedData.reduce((a,b)=>a+b,0))*100).toFixed(1) : 0;
+    document.getElementById("autoInsights").textContent =
+      `Average efficiency is ${avgEff}%. Total wastage across selected records: ${totalWaste} meals.`;
+  }
+  
+  /* ---- Export CSV ---- */
+  function exportCSV() {
+    if (!entries.length) return alert("No data available to export.");
+  
+    const header = ["Date", "Volunteer", "Center", "Cooked", "Distributed", "Wasted"];
+    const rows = entries.map(e => [e.date, e.volunteer, e.center, e.cooked, e.distributed, e.wasted]);
+    const csvContent = [header, ...rows].map(r => r.join(",")).join("\n");
+  
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "akshayametrics_report.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  /* ---- Button Events ---- */
+  $("#applyFilters").addEventListener("click", applyReportFilters);
+  $("#exportCSV").addEventListener("click", exportCSV);
+  
+    window.addEventListener("load", ()=>{
+      entries = loadEntriesLocal();
+      refreshAll();
+    });
+
+    /* ---------- CONTACT FORM STORAGE ---------- */
+const STORAGEKEY = 'akshaya_feedbacks';
+
+document.getElementById('contactForm').addEventListener('submit', function () {
+  const name = document.getElementById('cname').value.trim();
+  const email = document.getElementById('cemail').value.trim();
+  const message = document.getElementById('cmessage').value.trim();
+
+  if (!name || !email || !message) {
+    alert('Please fill all fields');
+    return;
+  }
+
+  // Retrieve old entries
+  let feedbacks = JSON.parse(localStorage.getItem(STORAGEKEY)) || [];
+
+  // Add new feedback
+  feedbacks.push({ name, email, message, date: new Date().toLocaleString() });
+
+  // Store back
+  localStorage.setItem(STORAGEKEY, JSON.stringify(feedbacks));
+
+  alert('Thank you! Your feedback has been submitted.');
+  this.reset();
+});
+
+    </script>
+    
+
+</body>
+</html>
