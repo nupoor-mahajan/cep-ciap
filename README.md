@@ -1,4 +1,4 @@
-# AkshayaMetrics
+## AkshayaMetrics
 
 AkshayaMetrics is a **web-based Food Distribution and Waste Tracking System** created as a **Community Engagement Programme (CEP)** project by students of *Shah & Anchor Kutchhi Engineering College (SAKEC)*.  
 It supports the **AkshayaShakti Foundation’s AkshayaAahaar initiative**, helping volunteers log, visualize, and analyze food distribution data to reduce waste and improve efficiency.
@@ -51,7 +51,7 @@ No external backend or database is required — the app works entirely on the cl
 ### From `dashboard.html`
 
 #### Storage Management
-- **`loadEntriesLocal()`** – Reads stored meal entries from localStorage.  
+- **`loadEntriesLocal()`** – Reads stored entries from localStorage.  
 - **`saveEntriesLocal(list)`** – Saves the updated list to localStorage.  
 - **`persist()`** – Syncs the in-memory data with storage.
 
