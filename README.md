@@ -14,9 +14,7 @@ The platform allows volunteers to:
 - Share feedback directly with the admin dashboard.
 
 Admins can review and manage all volunteer feedback through a clean, separate **Admin Panel**.
-
 ---
-
 ## 🧩 Core Files
 
 ### 1. `dashboard.html`
