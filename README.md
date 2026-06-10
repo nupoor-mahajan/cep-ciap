@@ -53,7 +53,7 @@ No external backend or database is required — the app works entirely on the cl
 ### From `dashboard.html`
 
 #### Storage Management
-- **`loadEntriesLocal()`** – Reads stored meal entries from localStorage.  
+- **`loadEntriesLocal()`** – Reads stored entries from localStorage.  
 - **`saveEntriesLocal(list)`** – Saves the updated list to localStorage.  
 - **`persist()`** – Syncs the in-memory data with storage.
 
