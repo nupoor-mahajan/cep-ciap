@@ -1,6 +1,6 @@
 ## AkshayaMetrics
 
-AkshayaMetrics is a **web-based Food Distribution and Waste Tracking System** created as a **Community Engagement Programme (CEP)** project by students of *Shah & Anchor Kutchhi Engineering College (SAKEC)*.  
+AkshayaMetrics is a **web-based Food Distribution and Waste Tracking System**.
 It supports the **AkshayaShakti Foundation’s AkshayaAahaar initiative**, helping volunteers log, visualize, and analyze food distribution data to reduce waste and improve efficiency.
 
 ---
@@ -14,9 +14,7 @@ The platform allows volunteers to:
 - Share feedback directly with the admin dashboard.
 
 Admins can review and manage all volunteer feedback through a clean, separate **Admin Panel**.
-
 ---
-
 ## 🧩 Core Files
 
 ### 1. `dashboard.html`
